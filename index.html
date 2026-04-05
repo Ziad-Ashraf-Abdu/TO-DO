@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warehouse AMR | Project Map</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg: #0f172a; --card-bg: rgba(30, 41, 59, 0.7); --accent: #22d3ee;
+            --accent-glow: rgba(34, 211, 238, 0.3); --text-main: #f1f5f9;
+            --text-dim: #94a3b8; --border: rgba(255, 255, 255, 0.1); --success: #10b981;
+        }
+        body { background-color: var(--bg); color: var(--text-main); font-family: 'Inter', -apple-system, sans-serif; margin: 0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
+        .dashboard { width: 100%; max-width: 900px; background: var(--card-bg); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 24px; padding: 40px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        header { margin-bottom: 40px; border-left: 4px solid var(--accent); padding-left: 20px; display: flex; justify-content: space-between; align-items: flex-start;}
+        h1 { margin: 0; font-size: 2rem; letter-spacing: -0.025em; }
+        p { color: var(--text-dim); margin-top: 8px; }
+        
+        /* Sync Status Indicator */
+        .sync-status { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-dim); background: rgba(255,255,255,0.05); padding: 6px 12px; border-radius: 99px; }
+        .syncing { color: var(--accent); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        .progress-container { margin-bottom: 30px; background: rgba(255, 255, 255, 0.05); border-radius: 999px; height: 12px; overflow: hidden; border: 1px solid var(--border); }
+        #progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 20px var(--accent-glow); }
+        .phase { margin-bottom: 40px; }
+        .phase-title { display: flex; align-items: center; gap: 10px; font-size: 1.25rem; font-weight: 700; margin-bottom: 20px; color: var(--accent); }
+        .category { margin-left: 10px; border-left: 1px solid var(--border); margin-bottom: 10px; }
+        .category-header { display: flex; align-items: center; gap: 12px; padding: 12px; cursor: pointer; border-radius: 12px; transition: background 0.2s; }
+        .category-header:hover { background: rgba(255, 255, 255, 0.03); }
+        .tasks-container { margin-left: 40px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .task-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 8px; font-size: 0.95rem; color: var(--text-dim); transition: all 0.2s; }
+        .task-item.completed { color: var(--success); text-decoration: line-through; opacity: 0.6; }
+        input[type="checkbox"] { appearance: none; width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 4px; cursor: pointer; position: relative; }
+        input[type="checkbox"]:checked { background: var(--success); border-color: var(--success); }
+        input[type="checkbox"]:checked::after { content: "✓"; position: absolute; color: white; font-size: 12px; left: 3px; top: -1px; }
+        .add-task-form { margin-left: 40px; margin-top: 10px; display: flex; gap: 10px; }
+        .add-task-form input { background: transparent; border: 1px solid var(--border); border-radius: 6px; color: white; padding: 4px 10px; font-size: 0.8rem; outline: none; }
+        .add-task-form input:focus { border-color: var(--accent); }
+        .add-btn { background: var(--accent); border: none; border-radius: 6px; color: var(--bg); padding: 4px 12px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+        .hardware-locked { opacity: 0.4; filter: grayscale(1); pointer-events: none; }
+        .collapsed .tasks-container, .collapsed .add-task-form { max-height: 0; margin-top: 0; }
+        .rotate-icon { transition: transform 0.2s; }
+        .collapsed .rotate-icon { transform: rotate(-90deg); }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <header>
+        <div>
+            <h1>Autonomous Warehouse Transporter</h1>
+            <p>System Architecture & Deployment Roadmap</p>
+        </div>
+        <div class="sync-status" id="sync-indicator">
+            <i data-lucide="cloud" size="16"></i>
+            <span id="sync-text">Connecting...</span>
+        </div>
+    </header>
+
+    <div class="phase" id="simulation-phase">
+        <div class="phase-title">
+            <i data-lucide="monitor-play"></i>
+            Phase 1: Simulation (SITL)
+            <span id="progress-text" style="font-size: 0.8rem; margin-left: auto; color: var(--text-dim);">0/0 Tasks</span>
+        </div>
+        
+        <div class="progress-container"><div id="progress-fill"></div></div>
+        <div id="tree-root"></div>
+    </div>
+
+    <div class="phase hardware-locked">
+        <div class="phase-title"><i data-lucide="cpu"></i>Phase 2: Hardware Deployment</div>
+        <p style="margin-left: 34px; font-size: 0.9rem;">Locked until Simulation validation is complete.</p>
+    </div>
+</div>
+
+<script>
+    // --- CLOUD SYNC CONFIGURATION ---
+    const USE_CLOUD = true; 
+    const BIN_ID = '69d1fb7faaba882197c6fb97'; 
+    const API_KEY = '$2a$10$FEkYin1P5jLs02E0wkyrRuuE5VZPZV.i4EWP6u3dKoBaHHoDrIW7S'; 
+    
+    // Default fallback data (used only if cloud load completely fails and local storage is empty)
+    const defaultData = [
+        { category: "Robot Modeling", tasks: [{name: "Create base URDF/Xacro", done: false}, {name: "Define kinematic chain", done: false}] },
+        { category: "Sensor Integration", tasks: [{name: "RGB-D Camera Plugin", done: false}, {name: "2D LiDAR Plugin", done: false}] },
+        { category: "Environment (Gazebo)", tasks: [{name: "Design warehouse layout", done: false}, {name: "Simulated QR markers", done: false}] },
+        { category: "Navigation & Vision", tasks: [{name: "Nav2 Stack Configuration", done: false}, {name: "SLAM Toolbox Setup", done: false}] },
+        { category: "Communication", tasks: [{name: "Custom ROS 2 Messages", done: false}, {name: "Task Dispatcher Node", done: false}] }
+    ];
+
+    let projectData = [];
+
+    // --- DATA MANAGEMENT ---
+    async function loadData() {
+        if (USE_CLOUD) {
+            setSyncStatus('Syncing from cloud...', true);
+            try {
+                const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+                projectData = data.record;
+                
+                // Save loaded cloud data to local storage as a backup
+                localStorage.setItem('amr_project_data', JSON.stringify(projectData));
+                setSyncStatus('Cloud Synced', false);
+            } catch (err) {
+                console.error("Cloud load failed, falling back to local.", err);
+                loadLocalData();
+            }
+        } else {
+            loadLocalData();
+        }
+        renderTree();
+    }
+
+    function loadLocalData() {
+        const saved = localStorage.getItem('amr_project_data');
+        projectData = saved ? JSON.parse(saved) : defaultData;
+        setSyncStatus('Saved Locally (Cloud Error)', false);
+    }
+
+    async function saveData() {
+        // Always save locally as an immediate backup
+        localStorage.setItem('amr_project_data', JSON.stringify(projectData));
+
+        if (USE_CLOUD) {
+            setSyncStatus('Saving to cloud...', true);
+            try {
+                const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+                    body: JSON.stringify(projectData)
+                });
+                if (!response.ok) throw new Error('Failed to update bin');
+                setSyncStatus('Cloud Synced', false);
+            } catch (err) {
+                console.error("Cloud save failed", err);
+                setSyncStatus('Cloud Save Failed', false);
+            }
+        } else {
+            setSyncStatus('Saved Locally', false);
+        }
+    }
+
+    // --- UI FUNCTIONS ---
+    function setSyncStatus(text, isSyncing) {
+        document.getElementById('sync-text').innerText = text;
+        const icon = document.querySelector('#sync-indicator i');
+        if(isSyncing) icon.classList.add('syncing');
+        else icon.classList.remove('syncing');
+    }
+
+    function renderTree() {
+        const root = document.getElementById('tree-root');
+        root.innerHTML = '';
+
+        projectData.forEach((item, catIndex) => {
+            const catDiv = document.createElement('div');
+            catDiv.className = 'category';
+            
+            let tasksHtml = item.tasks.map((task, taskIndex) => `
+                <div class="task-item ${task.done ? 'completed' : ''}">
+                    <input type="checkbox" ${task.done ? 'checked' : ''} 
+                           onchange="toggleTask(${catIndex}, ${taskIndex}, this.checked)">
+                    <span>${task.name}</span>
+                </div>
+            `).join('');
+
+            catDiv.innerHTML = `
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <i data-lucide="chevron-down" class="rotate-icon" size="18"></i>
+                    <i data-lucide="folder" size="18" style="color: var(--accent)"></i>
+                    <span>${item.category}</span>
+                </div>
+                <div class="tasks-container">${tasksHtml}</div>
+                <div class="add-task-form">
+                    <input type="text" placeholder="New task..." id="input-${catIndex}" onkeypress="handleEnter(event, ${catIndex})">
+                    <button class="add-btn" onclick="addTask(${catIndex})">Add</button>
+                </div>
+            `;
+            root.appendChild(catDiv);
+        });
+        lucide.createIcons();
+        updateProgressUI();
+    }
+
+    window.toggleCategory = (el) => el.parentElement.classList.toggle('collapsed');
+
+    window.toggleTask = (catIndex, taskIndex, isDone) => {
+        projectData[catIndex].tasks[taskIndex].done = isDone;
+        renderTree(); // Re-render to apply strikethrough class
+        saveData(); // Triggers cloud sync
+    };
+
+    window.addTask = (catIndex) => {
+        const input = document.getElementById(`input-${catIndex}`);
+        if (input.value.trim()) {
+            projectData[catIndex].tasks.push({ name: input.value.trim(), done: false });
+            input.value = '';
+            renderTree();
+            saveData(); // Triggers cloud sync
+        }
+    };
+
+    window.handleEnter = (e, catIndex) => { if (e.key === 'Enter') addTask(catIndex); };
+
+    function updateProgressUI() {
+        let total = 0; let done = 0;
+        projectData.forEach(cat => {
+            total += cat.tasks.length;
+            done += cat.tasks.filter(t => t.done).length;
+        });
+        const percent = total === 0 ? 0 : (done / total) * 100;
+        document.getElementById('progress-fill').style.width = percent + '%';
+        document.getElementById('progress-text').innerText = `${done}/${total} Tasks Complete`;
+    }
+
+    // Initialize the app by pulling from the cloud
+    loadData();
+</script>
+</body>
+</html>
