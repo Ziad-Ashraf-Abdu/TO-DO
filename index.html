@@ -439,6 +439,19 @@ body::after {
 }
 @keyframes blink{0%,100%{opacity:0.3}50%{opacity:1}}
 
+/* ── LOGO BANNER ── */
+.logo-banner {
+  margin-bottom:32px;border:1px solid rgba(0,255,249,0.1);
+  background:rgba(0,255,249,0.015);position:relative;overflow:hidden;
+}
+.logo-banner::before {
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 20% 50%,rgba(0,255,249,0.04) 0%,transparent 60%),
+             radial-gradient(ellipse at 60% 50%,rgba(255,0,170,0.03) 0%,transparent 60%);
+  pointer-events:none;
+}
+.logo-svg{display:block;width:100%;}
+
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-track{background:var(--bg);}
@@ -454,11 +467,105 @@ body::after {
 
 <div class="wrapper">
 
+  <!-- LOGO BANNER -->
+  <div class="logo-banner">
+    <svg class="logo-svg" viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="cglow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="mglow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="yglow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <pattern id="lgrid" width="30" height="30" patternUnits="userSpaceOnUse">
+          <path d="M30 0L0 0 0 30" fill="none" stroke="rgba(0,255,249,0.04)" stroke-width="0.5"/>
+        </pattern>
+      </defs>
+      <rect width="680" height="210" fill="url(#lgrid)"/>
+      <!-- Corner brackets -->
+      <path d="M16,16 L16,8 L36,8"   fill="none" stroke="rgba(0,255,249,0.35)" stroke-width="1.2"/>
+      <path d="M664,16 L664,8 L644,8" fill="none" stroke="rgba(0,255,249,0.35)" stroke-width="1.2"/>
+      <path d="M16,194 L16,202 L36,202" fill="none" stroke="rgba(0,255,249,0.35)" stroke-width="1.2"/>
+      <path d="M664,194 L664,202 L644,202" fill="none" stroke="rgba(0,255,249,0.35)" stroke-width="1.2"/>
+
+      <!-- ── ROBOT ── -->
+      <g transform="translate(148,108)">
+        <!-- Body -->
+        <rect x="-36" y="-42" width="72" height="56" rx="4" fill="#050d1a" stroke="#00fff9" stroke-width="1.5" filter="url(#cglow)"/>
+        <line x1="-20" y1="-30" x2="20" y2="-30" stroke="rgba(0,255,249,0.25)" stroke-width="0.8"/>
+        <line x1="-20" y1="-20" x2="20" y2="-20" stroke="rgba(0,255,249,0.12)" stroke-width="0.5"/>
+        <!-- Reactor core -->
+        <circle cx="0" cy="-4" r="12" fill="#030712" stroke="#ff00aa" stroke-width="1.5" filter="url(#mglow)"/>
+        <circle cx="0" cy="-4" r="6"  fill="rgba(255,0,170,0.12)" stroke="#ff00aa" stroke-width="1"/>
+        <circle cx="0" cy="-4" r="2.5" fill="#ff00aa" filter="url(#mglow)"/>
+        <!-- Status LEDs -->
+        <circle cx="-22" cy="-36" r="3" fill="#00ff88"/>
+        <circle cx="-12" cy="-36" r="3" fill="#ffe100"/>
+        <circle cx="-2"  cy="-36" r="3" fill="#ff003c"/>
+        <!-- Head -->
+        <rect x="-22" y="-76" width="44" height="30" rx="3" fill="#050d1a" stroke="#00fff9" stroke-width="1.5" filter="url(#cglow)"/>
+        <!-- Visor -->
+        <rect x="-16" y="-68" width="32" height="10" rx="2" fill="rgba(0,255,249,0.08)" stroke="#00fff9" stroke-width="1"/>
+        <rect x="-10" y="-66" width="7"  height="6" rx="1" fill="#00fff9" opacity="0.85" filter="url(#cglow)"/>
+        <rect x="3"   y="-66" width="7"  height="6" rx="1" fill="#00fff9" opacity="0.85" filter="url(#cglow)"/>
+        <!-- Neck -->
+        <rect x="-7" y="-46" width="14" height="4" fill="#0a1628" stroke="rgba(0,255,249,0.25)" stroke-width="0.8"/>
+        <!-- Left arm -->
+        <rect x="-54" y="-38" width="16" height="44" rx="3" fill="#0a1628" stroke="#00fff9" stroke-width="1.2"/>
+        <circle cx="-46" cy="-38" r="5" fill="#050d1a" stroke="#00fff9" stroke-width="1"/>
+        <!-- Gripper left -->
+        <rect x="-58" y="8"  width="7" height="16" rx="2" fill="#030712" stroke="#ff00aa" stroke-width="1" filter="url(#mglow)"/>
+        <rect x="-50" y="8"  width="7" height="16" rx="2" fill="#030712" stroke="#ff00aa" stroke-width="1" filter="url(#mglow)"/>
+        <!-- Right arm -->
+        <rect x="38" y="-38" width="16" height="44" rx="3" fill="#0a1628" stroke="#00fff9" stroke-width="1.2"/>
+        <circle cx="46" cy="-38" r="5" fill="#050d1a" stroke="#00fff9" stroke-width="1"/>
+        <!-- Scanner device -->
+        <rect x="40" y="4" width="13" height="9" rx="2" fill="#030712" stroke="#ffe100" stroke-width="1"/>
+        <line x1="46.5" y1="13" x2="46.5" y2="20" stroke="#ffe100" stroke-width="1" stroke-dasharray="2,2"/>
+        <line x1="41" y1="20" x2="52" y2="20" stroke="#ffe100" stroke-width="1.5" filter="url(#yglow)"/>
+        <!-- Legs -->
+        <rect x="-30" y="14" width="20" height="30" rx="3" fill="#0a1628" stroke="#00fff9" stroke-width="1.2"/>
+        <rect x="10"  y="14" width="20" height="30" rx="3" fill="#0a1628" stroke="#00fff9" stroke-width="1.2"/>
+        <!-- Wheels -->
+        <ellipse cx="-20" cy="44" rx="14" ry="6" fill="#050d1a" stroke="#00fff9" stroke-width="1.5" filter="url(#cglow)"/>
+        <ellipse cx="-20" cy="44" rx="7"  ry="3" fill="none" stroke="rgba(0,255,249,0.35)" stroke-width="1"/>
+        <ellipse cx="20"  cy="44" rx="14" ry="6" fill="#050d1a" stroke="#00fff9" stroke-width="1.5" filter="url(#cglow)"/>
+        <ellipse cx="20"  cy="44" rx="7"  ry="3" fill="none" stroke="rgba(0,255,249,0.35)" stroke-width="1"/>
+        <!-- QR box -->
+        <rect x="32" y="22" width="26" height="26" rx="2" fill="#030712" stroke="#ffe100" stroke-width="1" filter="url(#yglow)"/>
+        <rect x="35" y="25" width="7" height="7" rx="1" fill="none" stroke="#ffe100" stroke-width="1"/>
+        <rect x="44" y="25" width="4" height="4" fill="#ffe100" opacity="0.7"/>
+        <rect x="50" y="25" width="7" height="7" rx="1" fill="none" stroke="#ffe100" stroke-width="1"/>
+        <rect x="35" y="36" width="7" height="7" rx="1" fill="none" stroke="#ffe100" stroke-width="1"/>
+        <rect x="44" y="38" width="4" height="4" fill="#ffe100" opacity="0.5"/>
+        <rect x="37" y="27" width="3" height="3" fill="#ffe100"/>
+        <rect x="52" y="27" width="3" height="3" fill="#ffe100"/>
+        <rect x="37" y="38" width="3" height="3" fill="#ffe100"/>
+        <!-- Scan beam -->
+        <line x1="20" y1="35" x2="32" y2="35" stroke="#ffe100" stroke-width="1.5" filter="url(#yglow)"/>
+        <line x1="20" y1="31" x2="32" y2="31" stroke="rgba(255,225,0,0.35)" stroke-width="0.8"/>
+        <line x1="20" y1="39" x2="32" y2="39" stroke="rgba(255,225,0,0.35)" stroke-width="0.8"/>
+      </g>
+
+      <!-- ── TEXT ── -->
+      <!-- AMR -->
+      <text x="258" y="88" font-family="Orbitron,monospace" font-weight="900" font-size="64" fill="#00fff9" letter-spacing="6" filter="url(#cglow)">AMR</text>
+      <!-- acronym -->
+      <text x="262" y="112" font-family="'Share Tech Mono',monospace" font-size="10.5" fill="rgba(0,255,249,0.45)" letter-spacing="9">AUTONOMOUS  MOBILE  ROBOT</text>
+      <!-- separator -->
+      <line x1="258" y1="124" x2="648" y2="124" stroke="rgba(0,255,249,0.15)" stroke-width="0.7"/>
+      <line x1="258" y1="124" x2="380" y2="124" stroke="#ff00aa" stroke-width="1.5" filter="url(#mglow)"/>
+      <!-- subtitle -->
+      <text x="260" y="150" font-family="Orbitron,monospace" font-weight="900" font-size="21" fill="#f1f5f9" letter-spacing="2">WAREHOUSE TRANSPORTER</text>
+      <!-- tagline -->
+      <text x="262" y="176" font-family="'Share Tech Mono',monospace" font-size="11" fill="rgba(255,0,170,0.7)" letter-spacing="3">// LIFT · SCAN · ROUTE · DEPLOY</text>
+      <!-- version pill -->
+      <rect x="260" y="188" width="96" height="16" rx="2" fill="rgba(0,255,249,0.04)" stroke="rgba(0,255,249,0.18)" stroke-width="0.8"/>
+      <text x="308" y="200" font-family="'Share Tech Mono',monospace" font-size="9.5" fill="rgba(0,255,249,0.45)" text-anchor="middle" letter-spacing="2">BUILD v3.0</text>
+    </svg>
+  </div>
+
   <!-- HEADER -->
   <header class="hdr">
     <div class="hdr-left">
-      <div class="hdr-title">WAREHOUSE AMR</div>
-      <div class="hdr-sub">SYS: <span>AUTONOMOUS_LIFT_UNIT</span> // BUILD_MATRIX v3.0 // FULL_FEATURE_STACK</div>
+      <div class="hdr-sub" style="margin-top:0">SYS: <span>AUTONOMOUS_LIFT_UNIT</span> // BUILD_MATRIX v3.0 // FULL_FEATURE_STACK</div>
     </div>
     <div class="hdr-right">
       <div class="sync-badge">
